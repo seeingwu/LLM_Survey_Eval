@@ -1,6 +1,6 @@
 # llm_survey_eval
 
-[![English](https://img.shields.io/badge/lang-English-blue)](README.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-red)](readme_zh_cn.md)
+[![English](https://img.shields.io/badge/lang-English-blue)](readme.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-red)](readme_zh_cn.md)
 
 A research toolkit for evaluating **LLM‑generated survey data** against human survey data via a **four‑tier framework**. This repository is **GitHub‑first** (clone or ZIP install from source). A PyPI release will follow after Tier‑4 stabilises.
 
