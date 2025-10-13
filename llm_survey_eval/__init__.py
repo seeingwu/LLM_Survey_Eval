@@ -11,4 +11,5 @@ __all__ = [
     "run_tier1_comparisons",
     "compute_assoc_matrix", "compare_assoc", "tier2_structural", "plot_three",
     "compute_global_metrics_alt", "energy_distance_alt", "gaussian_mmd_alt", "c2st_auc_alt",
+    "evaluate_tier4", "summarize_tier4", "build_design_matrix", "fit_discrete_model"
 ]
