@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import chi2_contingency, spearmanr
 
+# -------------------- helpers --------------------
+
 def _cramers_v_from_counts(table: np.ndarray) -> float:
     chi2, p, df, expected = chi2_contingency(table, correction=False)
     n = table.sum()
@@ -15,6 +17,7 @@ def _cramers_v_from_counts(table: np.ndarray) -> float:
     r, c = table.shape
     v = np.sqrt((chi2 / n) / (min(r, c) - 1)) if min(r, c) > 1 else np.nan
     return float(v)
+
 
 def _correlation_ratio_eta(y_ord: pd.Series, x_nom: pd.Series) -> float:
     y = y_ord.dropna().astype(float)
@@ -30,12 +33,21 @@ def _correlation_ratio_eta(y_ord: pd.Series, x_nom: pd.Series) -> float:
     ss_total = ((y - grand) ** 2).sum()
     return float(np.sqrt(ss_between / ss_total)) if ss_total > 0 else 0.0
 
+
 def _spearman_pair(x: pd.Series, y: pd.Series) -> float:
     r = spearmanr(x, y, nan_policy="omit").correlation
     return float(r)
 
+
+# -------------------- core API --------------------
+
 def compute_assoc_matrix(df: pd.DataFrame, ordered_cols: List[str], nominal_cols: List[str]) -> pd.DataFrame:
+    """Compute a mixed-type association matrix with basic sanity checks."""
     cols = ordered_cols + nominal_cols
+    missing = [c for c in cols if c not in df.columns]
+    if missing:
+        raise KeyError(f"compute_assoc_matrix: missing columns in input df: {missing}. Available: {list(df.columns)}")
+
     n = len(cols)
     A = np.zeros((n, n), dtype=float)
     for i in range(n):
@@ -57,11 +69,13 @@ def compute_assoc_matrix(df: pd.DataFrame, ordered_cols: List[str], nominal_cols
             A[i, j] = A[j, i] = val
     return pd.DataFrame(A, index=cols, columns=cols)
 
+
 @dataclass
 class AssocSummary:
     mae: float
     rmse: float
     max_abs: float
+
 
 def compare_assoc(human_df: pd.DataFrame, llm_df: pd.DataFrame,
                   ordered_cols: List[str], nominal_cols: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, AssocSummary]:
@@ -77,23 +91,54 @@ def compare_assoc(human_df: pd.DataFrame, llm_df: pd.DataFrame,
     )
     return Ah, Al, D, summary
 
+
 def tier2_structural(survey_csv: Path, llm_csv: Path,
                      ordered_cols: List[str], nominal_cols: List[str],
                      id_col: str = "agent_id") -> Dict[str, object]:
+    """Read two CSVs, align by id if present, then compute association matrices and diffs.
+
+    Robustness upgrades:
+    - Validates presence of all required columns per file with clear error messages.
+    - If id alignment is requested but any required column is missing after merge,
+      raises with diagnostics (shows available columns and the exact missing set).
+    """
     s = pd.read_csv(survey_csv)
     l = pd.read_csv(llm_csv)
+
+    required = [id_col] + ordered_cols + nominal_cols
+    missing_s = [c for c in required if c not in s.columns]
+    missing_l = [c for c in required if c not in l.columns]
+    if missing_s:
+        raise KeyError(f"tier2_structural: survey_csv is missing columns {missing_s}. Available: {list(s.columns)}")
+    if missing_l:
+        raise KeyError(f"tier2_structural: llm_csv is missing columns {missing_l}. Available: {list(l.columns)}")
+
     if id_col in s.columns and id_col in l.columns:
         use_cols = [id_col] + ordered_cols + nominal_cols
         m = s[use_cols].merge(l[use_cols], on=id_col, suffixes=("_s", "_l"), how="inner")
-        hs = {c.replace("_s", ""): m[c] for c in m.columns if c.endswith("_s")}
-        hl = {c.replace("_l", ""): m[c] for c in m.columns if c.endswith("_l")}
+        if m.empty:
+            raise ValueError("tier2_structural: after inner join on id_col, merged frame is empty. Check id overlap.")
+        # Rebuild aligned frames with base names
+        hs = {c[:-2]: m[c] for c in m.columns if c.endswith("_s")}
+        hl = {c[:-2]: m[c] for c in m.columns if c.endswith("_l")}
         s_df = pd.DataFrame(hs)
         l_df = pd.DataFrame(hl)
     else:
+        # fall back to independent frames (no id alignment)
         s_df = s[ordered_cols + nominal_cols].copy()
         l_df = l[ordered_cols + nominal_cols].copy()
+
+    # Final guard: ensure all requested columns exist
+    for name, df in [("human_df", s_df), ("llm_df", l_df)]:
+        missing = [c for c in (ordered_cols + nominal_cols) if c not in df.columns]
+        if missing:
+            raise KeyError(f"{name} missing columns {missing}. Columns present: {list(df.columns)}")
+
     Ah, Al, D, summary = compare_assoc(s_df, l_df, ordered_cols, nominal_cols)
     return {"assoc_h": Ah, "assoc_l": Al, "assoc_diff": D, "summary": summary}
+
+
+# -------------------- viz --------------------
 
 def plot_three(assoc_h: pd.DataFrame, assoc_l: pd.DataFrame, assoc_d: pd.DataFrame):
     labels = list(assoc_h.columns)
@@ -114,3 +159,4 @@ def plot_three(assoc_h: pd.DataFrame, assoc_l: pd.DataFrame, assoc_d: pd.DataFra
     cbar.set_label("Association (ρ / η / V)")
     fig.tight_layout()
     return fig
+
