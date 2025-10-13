@@ -81,7 +81,7 @@ pip install -e .
 ---
 
 ## 快速上手
-参见 `examples/demo_full_pipeline.ipynb`（覆盖 **Tiers 1–4**）。Notebook 构造可复现的玩具 Human/LLM 数据，演示：
+参见 [(examples_demo_full_pipeline.ipynb)]（覆盖 **Tiers 1–4**）。Notebook 构造可复现的玩具 Human/LLM 数据，演示：
 - 有序重叠直方图、名义占比柱状图；
 - Tier‑2 三联热图与 |Δ| 热图；
 - Tier‑3 的 PCA 投影；
