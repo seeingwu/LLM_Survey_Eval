@@ -16,7 +16,7 @@ We aim for transparent, testable, and academically reproducible code. Metrics ar
 
 ```bash
 # 1) clone
-git clone https://github.com/<your-username>/llm_survey_eval.git
+git clone https://github.com/seeingwu/llm_survey_eval.git
 cd llm_survey_eval
 
 # 2) optional: use a fresh environment
