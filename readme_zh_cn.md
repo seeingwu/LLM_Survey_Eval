@@ -1,6 +1,6 @@
 # llm_survey_eval（中文）
 
-[![English](https://img.shields.io/badge/lang-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-red)](./README.zh-CN.md)
+[![English](https://img.shields.io/badge/lang-English-blue)](README.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-red)](README.zh-CN.md)
 
 `llm_survey_eval` 是一个用于评估 **LLM 生成问卷数据** 与 **人类问卷数据** 的四层（Tier‑1→4）方法工具包，当前以 **GitHub 源码安装** 为主（可通过克隆或 ZIP 解压安装）。当 Tier‑4 稳定后将考虑发布 PyPI 版本。
 
