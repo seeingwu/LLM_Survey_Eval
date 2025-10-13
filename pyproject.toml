@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm_survey_eval"
+version = "0.1.0"
+description = "Four-tier evaluation of LLM-generated survey data vs human surveys"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [ { name = "Sijin Wu" } ]
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.22",
+  "pandas>=1.4",
+  "scipy>=1.9",
+  "scikit-learn>=1.1"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/llm_survey_eval"
+Issues   = "https://github.com/your-username/llm_survey_eval/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["llm_survey_eval*"]
