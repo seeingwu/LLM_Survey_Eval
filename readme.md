@@ -11,7 +11,7 @@ A research toolkit for evaluating **LLM‑generated survey data** against human 
 ### Option A — Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/llm_survey_eval.git
+git clone https://github.com/seeingwu/LLM_Survey_Eval.git
 cd llm_survey_eval
 python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install --upgrade pip
