@@ -24,7 +24,7 @@ pip install -e .
 2. Unzip, then:
 
    ```bash
-   cd llm_survey_eval
+   cd LLM_Survey_Eval-main
    python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
    pip install --upgrade pip
    pip install -e .
@@ -33,7 +33,7 @@ pip install -e .
 
    ```bash
    pip install jupyter
-   jupyter notebook examples/demo_full_pipeline.ipynb
+   jupyter notebook examples_demo_full_pipeline.ipynb
    ```
 
 > Python ≥ 3.9. Core dependencies: NumPy, pandas, SciPy, scikit‑learn, statsmodels (see `pyproject.toml`).
