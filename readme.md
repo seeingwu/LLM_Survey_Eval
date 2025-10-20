@@ -83,7 +83,7 @@ Prepare **two CSV files**—one for **human** data and one for **LLM** data. Bot
 
 ## Quick start
 
-[![Open Demo](https://img.shields.io/badge/Open%20Demo-Notebook-blue)](examples_demo_full_pipeline.ipynb)
+[![Open Demo](https://img.shields.io/badge/Open%20Demo-Notebook-blue)](examples_demo.ipynb)
 (now covering **Tiers 1–4**). It builds reproducible toy human/LLM data, runs all tiers, and saves plots:
 
 * Ordinal overlays and nominal composition plots;
