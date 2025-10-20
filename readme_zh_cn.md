@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/lang-English-blue)](readme.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-red)](README.zh-CN.md)
 
-`llm_survey_eval` 是一个用于评估 **LLM 生成问卷数据** 与 **人类问卷数据** 的四层（Tier‑1→4）方法工具包，当前以 **GitHub 源码安装** 为主（可通过克隆或 ZIP 解压安装）。当 Tier‑4 稳定后将考虑发布 PyPI 版本。
+`llm_survey_eval`  是一个用于评估大语言模型（LLM）生成问卷数据真实性、结构一致性及推理有效性的综合框架。该项目构建了四层次评估体系，从描述性特征、行为关联、多变量结构到推断一致性，全方位比较 LLM 模拟数据与真实人类问卷数据的差异。它通过透明、可重复的度量方法，将人工智能与社会科学相结合，为城市研究与行为分析提供可靠的定量验证工具。
 
 ---
 
