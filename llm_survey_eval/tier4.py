@@ -48,7 +48,8 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.miscmodels.ordinal_model import OrderedModel
 
-
+import matplotlib.pyplot as plt
+import scipy.stats as st
 # ------------------------- utilities -------------------------
 
 def _ensure_binary(vec: pd.Series) -> pd.Series:
@@ -352,3 +353,61 @@ if __name__ == "__main__":
 
     ev = evaluate_tier4(human, llm, feature_schema, outcomes)
     print(summarize_tier4(ev))
+
+def plot_forest_tier4(result, outcome_name, model_labels=('human', 'llm'), alpha=0.05, figsize=(8, 10)):
+    """Plot a forest plot for Tier‑4 results showing coefficient comparison between human and LLM models.
+
+    If standard errors are unavailable, 95% confidence intervals are approximated from p‑values
+    using the normal quantile of the two‑tailed test.
+    """
+    if outcome_name not in result:
+        raise ValueError(f"Outcome '{outcome_name}' not found in provided Tier‑4 results.")
+
+    human_tab = result[outcome_name]['human'].table.copy()
+    llm_tab = result[outcome_name]['llm'].table.copy()
+
+    common = human_tab.index.intersection(llm_tab.index)
+    human_tab = human_tab.loc[common]
+    llm_tab = llm_tab.loc[common]
+
+    df = pd.DataFrame({
+        'coef_h': human_tab['coef'],
+        'coef_l': llm_tab['coef'],
+        'pval_h': human_tab['pval'],
+        'pval_l': llm_tab['pval']
+    }, index=common)
+
+    # approximate stderr from p‑values and coefficients (two‑tailed normal)
+    z_h = np.abs(st.norm.ppf(df['pval_h'] / 2))
+    z_l = np.abs(st.norm.ppf(df['pval_l'] / 2))
+
+    df['stderr_h'] = np.where(z_h > 0, np.abs(df['coef_h'] / z_h), np.nan)
+    df['stderr_l'] = np.where(z_l > 0, np.abs(df['coef_l'] / z_l), np.nan)
+
+    zcrit = st.norm.ppf(1 - alpha / 2)
+    df['ci_low_h'] = df['coef_h'] - zcrit * df['stderr_h']
+    df['ci_high_h'] = df['coef_h'] + zcrit * df['stderr_h']
+    df['ci_low_l'] = df['coef_l'] - zcrit * df['stderr_l']
+    df['ci_high_l'] = df['coef_l'] + zcrit * df['stderr_l']
+
+    df = df.reindex(df['coef_h'].abs().sort_values(ascending=False).index)
+
+    y_pos = np.arange(len(df))
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.hlines(y_pos + 0.2, df['ci_low_h'], df['ci_high_h'], color='tab:blue', lw=2)
+    ax.hlines(y_pos - 0.2, df['ci_low_l'], df['ci_high_l'], color='tab:orange', lw=2)
+
+    ax.plot(df['coef_h'], y_pos + 0.2, 'o', color='tab:blue', label=model_labels[0])
+    ax.plot(df['coef_l'], y_pos - 0.2, 's', color='tab:orange', label=model_labels[1])
+
+    ax.axvline(x=0, color='grey', linestyle='--', lw=1)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(df.index)
+    ax.invert_yaxis()
+
+    ax.set_xlabel('Coefficient Estimate')
+    ax.set_title(f'Forest Plot: {outcome_name} ({model_labels[0]} vs {model_labels[1]})')
+    ax.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
