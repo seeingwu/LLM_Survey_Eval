@@ -34,6 +34,7 @@ Example
 ... }
 >>> evals = evaluate_tier4(human_df, llm_df, feature_schema, outcomes, alpha=0.05)
 >>> evals['satisfaction']['metrics']  # {'DCR': ..., 'SMR': ...}
+>>> plot_forest_tier4(evals,'mode_out',model_labels=('human', 'llm'))
 
 """
 from __future__ import annotations
