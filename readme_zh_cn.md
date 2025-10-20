@@ -81,7 +81,7 @@ pip install -e .
 ---
 
 ## 快速上手
-[![Open Demo](https://img.shields.io/badge/Open%20Demo-Notebook-blue)](examples_demo_full_pipeline.ipynb)
+[![Open Demo](https://img.shields.io/badge/Open%20Demo-Notebook-blue)](examples_demo.ipynb)
 （覆盖 **Tiers 1–4**）。Notebook 构造可复现的玩具 Human/LLM 数据，演示：
 - 有序重叠直方图、名义占比柱状图；
 - Tier‑2 三联热图与 |Δ| 热图；
