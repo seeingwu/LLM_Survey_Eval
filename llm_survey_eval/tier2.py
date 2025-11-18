@@ -144,19 +144,26 @@ def plot_three(assoc_h: pd.DataFrame, assoc_l: pd.DataFrame, assoc_d: pd.DataFra
     labels = list(assoc_h.columns)
     n = len(labels)
     mask = np.triu(np.ones((n, n), dtype=bool), k=1)
-    mats = [("Human", assoc_h.values), ("LLM", assoc_l.values), ("Difference (LLM − Human)", assoc_d.values)]
-    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    mats = [
+        ("Human", assoc_h.values),
+        ("LLM", assoc_l.values),
+        ("Difference (LLM − Human)", assoc_d.values),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6), constrained_layout=True)
+
+    last_im = None
     for ax, (title, data) in zip(axes, mats):
         data_masked = np.ma.array(data, mask=mask)
         im = ax.imshow(data_masked, vmin=-1, vmax=1, cmap='coolwarm')
+        last_im = im
         ax.set_title(title, fontsize=12)
         ax.set_xticks(np.arange(n)); ax.set_xticklabels(labels, rotation=90)
         ax.set_yticks(np.arange(n)); ax.set_yticklabels(labels)
         for g in [3, 6]:
             ax.axhline(g-0.5, linewidth=1.0, c='black')
             ax.axvline(g-0.5, linewidth=1.0, c='black')
-    cbar = fig.colorbar(im, ax=axes.ravel().tolist(), fraction=0.02, pad=0.02)
-    cbar.set_label("Association (ρ / η / V)")
-    fig.tight_layout()
-    return fig
 
+    cbar = fig.colorbar(last_im, ax=axes, fraction=0.03, pad=0.02)
+    cbar.set_label("Association (ρ / η / V)")
+    return fig

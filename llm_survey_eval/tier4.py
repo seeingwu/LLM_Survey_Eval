@@ -123,6 +123,8 @@ def build_design_matrix(df: pd.DataFrame, feature_schema: Dict[str, Dict]) -> Tu
     keep = nunique[(nunique > 1)].index
     X = X[keep]
 
+    X = X.apply(pd.to_numeric, errors='coerce').astype(float)
+
     return X, list(X.columns)
 
 
@@ -409,6 +411,6 @@ def plot_forest_tier4(result, outcome_name, model_labels=('human', 'llm'), alpha
 
     ax.set_xlabel('Coefficient Estimate')
     ax.set_title(f'Forest Plot: {outcome_name} ({model_labels[0]} vs {model_labels[1]})')
-    ax.legend(loc='best')
+    ax.legend(loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.1))
     plt.tight_layout()
-    plt.show()
+    return fig, ax
