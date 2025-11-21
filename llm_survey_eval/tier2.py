@@ -94,7 +94,7 @@ def compare_assoc(human_df: pd.DataFrame, llm_df: pd.DataFrame,
 
 def tier2_structural(survey_csv: Path, llm_csv: Path,
                      ordered_cols: List[str], nominal_cols: List[str],
-                     id_col: str = "agent_id") -> Dict[str, object]:
+                     id_col: str = "agent_id", save_csv: bool = False, out_prefix: str | Path | None = None) -> Dict[str, object]:
     """Read two CSVs, align by id if present, then compute association matrices and diffs.
 
     Robustness upgrades:
@@ -135,6 +135,17 @@ def tier2_structural(survey_csv: Path, llm_csv: Path,
             raise KeyError(f"{name} missing columns {missing}. Columns present: {list(df.columns)}")
 
     Ah, Al, D, summary = compare_assoc(s_df, l_df, ordered_cols, nominal_cols)
+
+    if save_csv:
+        if out_prefix is None:
+            base = Path(survey_csv).with_suffix("")
+        else:
+            base = Path(out_prefix)
+
+        Ah.to_csv(base.with_name(base.name + "_assoc_h.csv"))
+        Al.to_csv(base.with_name(base.name + "_assoc_l.csv"))
+        D.to_csv(base.with_name(base.name + "_assoc_diff.csv"))
+
     return {"assoc_h": Ah, "assoc_l": Al, "assoc_diff": D, "summary": summary}
 
 
