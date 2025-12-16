@@ -22,11 +22,22 @@ def _onehot_fixed(s: pd.Series, categories: list[int]) -> np.ndarray:
     o[np.arange(len(c))[m], idx[m]] = 1.0
     return o
 
-def _embed(df: pd.DataFrame, ordered: list[str], nominal: list[str], nominal_categories: dict[str, list[int]] | None = None) -> np.ndarray:
-    parts = [_minmax(df[c].values.reshape(-1,1)) for c in ordered]
+def _embed(df: pd.DataFrame, ordered: list[str], nominal: list[str],
+           nominal_categories: dict[str, list[int]] | None = None) -> np.ndarray:
+    parts = []
+    for c in ordered:
+        v = np.asarray(df[c].to_numpy())
+        if v.ndim != 1:
+            raise ValueError(f"Ordered column {c} became {v.ndim}D with shape {v.shape}")
+        parts.append(_minmax(v.reshape(-1, 1)))
+
     for c in nominal:
         cats = nominal_categories.get(c) if nominal_categories else sorted(df[c].dropna().unique())
-        parts.append(_onehot_fixed(df[c], list(cats)))
+        oh = _onehot_fixed(df[c], list(cats))
+        if oh.ndim != 2:
+            raise ValueError(f"Onehot for {c} is {oh.ndim}D with shape {oh.shape}")
+        parts.append(oh)
+
     X = np.hstack(parts) if parts else np.zeros((len(df), 0))
     return np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
 
