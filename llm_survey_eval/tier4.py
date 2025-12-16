@@ -199,12 +199,22 @@ def fit_discrete_model(df: pd.DataFrame, outcome: str, outcome_type: str, featur
 
     X, colnames = build_design_matrix(df, feature_schema)
 
+    X = X.apply(lambda c: pd.to_numeric(c, errors='coerce')).astype(float)
+
     if outcome_type == 'ordered':
         y = pd.to_numeric(df[outcome], errors='coerce')
+        mask = (~y.isna()) & (~X.isna().any(axis=1))
+        y = y.loc[mask]
+        X = X.loc[mask]
         return _ordered_logit(y, X)
+
     elif outcome_type == 'multinomial':
         y = df[outcome]
+        mask = (~pd.isna(y)) & (~X.isna().any(axis=1))
+        y = y.loc[mask]
+        X = X.loc[mask]
         return _multinomial_logit(y, X)
+    
     else:
         raise ValueError("outcome_type must be 'ordered' or 'multinomial'")
 
@@ -300,62 +310,6 @@ def summarize_tier4(evals: Dict[str, Dict[str, object]]) -> pd.DataFrame:
         m = obj['metrics']
         rows.append({'outcome': out_name, 'DCR': m['DCR'], 'SMR': m['SMR'], 'n_coefs': m['n_coefs']})
     return pd.DataFrame(rows).sort_values('outcome').reset_index(drop=True)
-
-
-# --------------------- minimal smoke test ---------------------
-if __name__ == "__main__":
-    # Tiny synthetic check (not exhaustive)
-    rng = np.random.default_rng(0)
-    N = 400
-    human = pd.DataFrame({'agent_id': np.arange(N)})
-    llm   = pd.DataFrame({'agent_id': np.arange(N)})
-
-    # Predictors
-    human['gender'] = rng.integers(0, 2, size=N)
-    llm['gender']   = rng.integers(0, 2, size=N)
-
-    human['income'] = rng.normal(0, 1, size=N)
-    llm['income']   = rng.normal(0.1, 1.1, size=N)
-
-    human['season'] = rng.integers(1, 5, size=N)  # 1..4
-    llm['season']   = rng.integers(1, 5, size=N)
-
-    # Outcomes
-    # Ordered (1..5) from a latent index
-    idx_h = 0.6*human['income'] + 0.4*human['gender'] + rng.normal(0, 1, size=N)
-    idx_l = 0.6*llm['income']   + 0.4*llm['gender']   + rng.normal(0, 1.1, size=N)
-    cuts = [-np.inf, -0.5, 0.0, 0.5, 1.2, np.inf]
-    def to_ord(x):
-        return pd.cut(x, bins=cuts, labels=[1,2,3,4,5]).astype(int)
-    human['satisfaction'] = to_ord(idx_h)
-    llm['satisfaction']   = to_ord(idx_l)
-
-    # Multinomial (1..3) from softmax on utilities
-    def soft_choice(df):
-        U = np.column_stack([
-            0.4*df['income'] - 0.2*df['gender'],
-            0.1*df['income'] + 0.3*df['gender'],
-            0.0*df['income'] + 0.0*df['gender'],
-        ])
-        # Gumbel noise
-        e = rng.gumbel(size=U.shape)
-        U += e
-        return 1 + np.argmax(U, axis=1)
-    human['mode'] = soft_choice(human)
-    llm['mode']   = soft_choice(llm)
-
-    feature_schema = {
-        'gender': {'type': 'binary'},
-        'income': {'type': 'continuous'},
-        'season': {'type': 'nominal', 'categories': [1,2,3,4]},
-    }
-    outcomes = {
-        'satisfaction': {'type': 'ordered', 'levels': [1,2,3,4,5]},
-        'mode':         {'type': 'multinomial', 'levels': [1,2,3]},
-    }
-
-    ev = evaluate_tier4(human, llm, feature_schema, outcomes)
-    print(summarize_tier4(ev))
 
 def plot_forest_tier4(result, outcome_name, model_labels=('human', 'llm'), alpha=0.05, figsize=(8, 10)):
     """Plot a forest plot for Tier‑4 results showing coefficient comparison between human and LLM models.
