@@ -84,6 +84,7 @@ pip install -e .
 [![Open Demo](https://img.shields.io/badge/Open%20Demo-Notebook-blue)](examples_demo.ipynb)
 （覆盖 **Tiers 1–4**）。Notebook 构造可复现的玩具 Human/LLM 数据，演示：
 - 有序重叠直方图、名义占比柱状图；
+- Tier-1 各指标汇总表；
 - Tier‑2 三联热图与 |Δ| 热图；
 - Tier‑3 的 PCA 投影；
 - Tier‑4 的 DCR/SMR 汇总与系数级明细。
