@@ -87,6 +87,7 @@ Prepare **two CSV files**—one for **human** data and one for **LLM** data. Bot
 (now covering **Tiers 1–4**). It builds reproducible toy human/LLM data, runs all tiers, and saves plots:
 
 * Ordinal overlays and nominal composition plots;
+* Tier-1 summary table of metrics;
 * Tier‑2 triptych and |Δ| heatmap;
 * Tier‑3 PCA projection;
 * Tier‑4 DCR/SMR summary and coefficient‑level details.
