@@ -33,7 +33,7 @@ pip install -e .
 
    ```bash
    pip install jupyter
-   jupyter notebook examples_demo_full_pipeline.ipynb
+   jupyter notebook examples_demo.ipynb
    ```
 
 > Python ≥ 3.9. Core dependencies: NumPy, pandas, SciPy, scikit‑learn, statsmodels (see `pyproject.toml`).
