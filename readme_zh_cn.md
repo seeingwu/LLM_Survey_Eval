@@ -39,7 +39,7 @@ pip install -e .
 5. （可选）安装 Jupyter 并运行演示：
    ```bash
    pip install jupyter
-   jupyter notebook examples/demo_full_pipeline.ipynb
+   jupyter notebook examples_demo.ipynb
    ```
 
 > Python ≥ 3.9；依赖：NumPy、pandas、SciPy、scikit‑learn、statsmodels（详见 `pyproject.toml`）。
