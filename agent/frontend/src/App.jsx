@@ -5,6 +5,63 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 const SYSTEM_PROMPT =
   'You are a data scientist. Turn the evaluation report into a concise, vivid summary with clear takeaways. Keep it brief and actionable.'
 
+const escapeHtml = (value) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+const inlineMarkdown = (value) => {
+  let html = value
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>')
+  return html
+}
+
+const renderMarkdown = (text) => {
+  if (!text) return ''
+  const lines = escapeHtml(text).split(/\r?\n/)
+  let html = ''
+  let inList = false
+  lines.forEach((line) => {
+    if (line.startsWith('- ')) {
+      if (!inList) {
+        html += '<ul>'
+        inList = true
+      }
+      html += `<li>${inlineMarkdown(line.slice(2))}</li>`
+      return
+    }
+    if (inList) {
+      html += '</ul>'
+      inList = false
+    }
+    if (/^###\s+/.test(line)) {
+      html += `<h4>${inlineMarkdown(line.replace(/^###\s+/, ''))}</h4>`
+      return
+    }
+    if (/^##\s+/.test(line)) {
+      html += `<h3>${inlineMarkdown(line.replace(/^##\s+/, ''))}</h3>`
+      return
+    }
+    if (/^#\s+/.test(line)) {
+      html += `<h2>${inlineMarkdown(line.replace(/^#\s+/, ''))}</h2>`
+      return
+    }
+    if (!line.trim()) {
+      html += '<br />'
+      return
+    }
+    html += `<p>${inlineMarkdown(line)}</p>`
+  })
+  if (inList) html += '</ul>'
+  return html
+}
+
 const toNumber = (value) => {
   if (value === null || value === undefined || value === '') return null
   const num = Number(value)
@@ -24,13 +81,13 @@ const maxValue = (values, fallback = 1) => {
 }
 
 const formatMetric = (value) => {
-  if (!Number.isFinite(value)) return '—'
+  if (!Number.isFinite(value)) return '--'
   return value.toFixed(3)
 }
 
 const MetricBars = ({items, accent = 'var(--accent)'}) => {
   if (!items.length) {
-    return <div className="empty">等待评估结果...</div>
+    return <div className="empty">Waiting for results...</div>
   }
 
   return (
@@ -86,7 +143,8 @@ export default function App() {
 
   useEffect(() => {
     if (!report || chatMessages.length) return
-    const defaultPrompt = `Please rewrite the following evaluation report into a concise, vivid summary with clear takeaways.\n\n${report}`
+    const defaultPrompt =
+      `Please rewrite the following evaluation report into a concise, vivid summary with clear takeaways.\n\n${report}`
     setChatInput(defaultPrompt)
   }, [report, chatMessages.length])
 
@@ -218,48 +276,73 @@ export default function App() {
           <p className="hero-kicker">Survey Evaluation</p>
           <h1>Data-Driven Survey Fidelity Analysis</h1>
           <p className="hero-sub">
-            Upload ground-truth and generated survey CSVs to run Tier 1–4 metrics and
+            Upload ground-truth and generated survey CSVs to run Tier 1-4 metrics and
             review results on a visual data canvas.
           </p>
         </div>
         <div className="hero-panel">
-          <div className="hero-chip">Tier 1 · Distributions</div>
-          <div className="hero-chip">Tier 2 · Associations</div>
-          <div className="hero-chip">Tier 3 · Multivariate</div>
-          <div className="hero-chip">Tier 4 · Inference</div>
+          <div className="hero-chip">Tier 1 - Distributions</div>
+          <div className="hero-chip">Tier 2 - Associations</div>
+          <div className="hero-chip">Tier 3 - Multivariate</div>
+          <div className="hero-chip">Tier 4 - Inference</div>
         </div>
       </header>
 
       <main className="layout">
-        <section className="card uploader-card">
-          <h2>Upload Data</h2>
-          <p className="muted">
-            CSV only. Use column names consistent with the demo to improve auto-detection.
-          </p>
-          <form onSubmit={handleSubmit} className="uploader">
-            <label className="file">
-              Ground-truth CSV
-              <input type="file" accept=".csv" onChange={(e) => setGtFile(e.target.files?.[0])} />
-              <span className="file-name">{gtFile?.name || 'No file selected'}</span>
-            </label>
-            <label className="file">
-              Generated CSV
-              <input type="file" accept=".csv" onChange={(e) => setGenFile(e.target.files?.[0])} />
-              <span className="file-name">{genFile?.name || 'No file selected'}</span>
-            </label>
+        <div className="side-column">
+          <section className="card uploader-card">
+            <h2>Upload Data</h2>
+            <p className="muted">
+              CSV only. Use column names consistent with the demo to improve auto-detection.
+            </p>
+            <form onSubmit={handleSubmit} className="uploader">
+              <label className="file">
+                Ground-truth CSV
+                <input type="file" accept=".csv" onChange={(e) => setGtFile(e.target.files?.[0])} />
+                <span className="file-name">{gtFile?.name || 'No file selected'}</span>
+              </label>
+              <label className="file">
+                Generated CSV
+                <input type="file" accept=".csv" onChange={(e) => setGenFile(e.target.files?.[0])} />
+                <span className="file-name">{genFile?.name || 'No file selected'}</span>
+              </label>
 
-            <button className="btn primary" type="submit" disabled={loading}>
-              {loading ? 'Running analysis...' : 'Run analysis'}
-            </button>
-            {error && <p className="error">{error}</p>}
-          </form>
-        </section>
+              <button className="btn primary" type="submit" disabled={loading}>
+                {loading ? 'Running analysis...' : 'Run analysis'}
+              </button>
+              {error && <p className="error">{error}</p>}
+            </form>
+          </section>
+
+          <section className="card info-card">
+            <h2>Quick Guide</h2>
+            <p className="muted">
+              This workflow compares real survey responses against synthetic results to quantify fidelity.
+            </p>
+            <div className="info-block">
+              <h4>Prepare your CSVs</h4>
+              <ul>
+                <li>Each row represents one respondent.</li>
+                <li>Keep column names consistent across both files.</li>
+                <li>Ordinal columns should use ordered numeric codes (e.g., 1-5).</li>
+              </ul>
+            </div>
+            <div className="info-block">
+              <h4>Read the canvas</h4>
+              <ul>
+                <li>Tier 1-3 highlight distribution, association, and multivariate fidelity.</li>
+                <li>Tier 4 shows inferential alignment (DCR/SMR).</li>
+                <li>Use the LLM Summary to turn metrics into actionable insights.</li>
+              </ul>
+            </div>
+          </section>
+        </div>
 
         <section className="card results-card">
           <div className="section-head">
             <h2>Evaluation Canvas</h2>
             <span className="pill">
-              Variables: {Number.isFinite(metrics.variableCount) ? metrics.variableCount : '—'}
+              Variables: {Number.isFinite(metrics.variableCount) ? metrics.variableCount : '--'}
             </span>
           </div>
 
@@ -288,19 +371,19 @@ export default function App() {
 
           <div className="figure-grid">
             <figure className="figure-card">
-              <figcaption>Tier 1 · Descriptive Similarity</figcaption>
+              <figcaption>Tier 1 - Descriptive Similarity</figcaption>
               <MetricBars items={tier1Bars} accent="var(--accent)" />
             </figure>
             <figure className="figure-card">
-              <figcaption>Tier 2 · Association Consistency</figcaption>
+              <figcaption>Tier 2 - Association Consistency</figcaption>
               <MetricBars items={tier2Bars} accent="var(--accent-2)" />
             </figure>
             <figure className="figure-card">
-              <figcaption>Tier 3 · Multivariate Fidelity</figcaption>
+              <figcaption>Tier 3 - Multivariate Fidelity</figcaption>
               <MetricBars items={tier3Bars} accent="var(--accent-3)" />
             </figure>
             <figure className="figure-card">
-              <figcaption>Tier 4 · Inferential Equivalence</figcaption>
+              <figcaption>Tier 4 - Inferential Equivalence</figcaption>
               <MetricBars items={tier4Bars} accent="var(--accent-4)" />
             </figure>
           </div>
@@ -313,7 +396,10 @@ export default function App() {
                   chatMessages.map((msg, idx) => (
                     <div className={`chat-message ${msg.role}`} key={`${msg.role}-${idx}`}>
                       <span className="chat-role">{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                      <p>{msg.content}</p>
+                      <div
+                        className="markdown-content"
+                        dangerouslySetInnerHTML={{__html: renderMarkdown(msg.content)}}
+                      />
                     </div>
                   ))
                 ) : (
@@ -352,7 +438,7 @@ export default function App() {
                         {tableColumns.map((col) => {
                           const value = row[col]
                           const num = toNumber(value)
-                          return <td key={col}>{Number.isFinite(num) ? num.toFixed(4) : value ?? '—'}</td>
+                          return <td key={col}>{Number.isFinite(num) ? num.toFixed(4) : value ?? '--'}</td>
                         })}
                       </tr>
                     ))}
@@ -366,7 +452,7 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer">CitySurvey Evaluation · Data Canvas</footer>
+      <footer className="footer">CitySurvey Evaluation - Data Canvas</footer>
     </div>
   )
 }

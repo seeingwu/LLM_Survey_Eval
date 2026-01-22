@@ -102,6 +102,12 @@ body{
   gap:24px;
 }
 
+.side-column{
+  display:grid;
+  gap:24px;
+  align-content:start;
+}
+
 .card{
   background:var(--panel);
   border-radius:var(--radius);
@@ -164,6 +170,40 @@ body{
 }
 
 .results-card{display:flex;flex-direction:column;gap:20px}
+
+.info-card h2{
+  margin:0 0 10px;
+  font-size:20px;
+}
+
+.info-block{
+  display:grid;
+  gap:8px;
+  padding:12px 0;
+  border-top:1px solid rgba(27,37,48,0.08);
+}
+
+.info-block:first-of-type{
+  border-top:none;
+  padding-top:0;
+}
+
+.info-block h4{
+  margin:0;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--muted);
+}
+
+.info-block ul{
+  margin:0;
+  padding-left:18px;
+  display:grid;
+  gap:6px;
+  color:var(--ink);
+  font-size:14px;
+}
 
 .section-head{
   display:flex;
@@ -266,14 +306,15 @@ body{
 }
 
 .chat-log{
-  background:#10151d;
-  color:#f5f7fa;
+  background:var(--panel-soft);
+  color:var(--ink);
   padding:16px;
   border-radius:12px;
   max-height:280px;
   overflow:auto;
   display:grid;
   gap:12px;
+  border:1px solid rgba(27,37,48,0.08);
 }
 
 .chat-message{
@@ -281,29 +322,58 @@ body{
   gap:6px;
   padding:10px 12px;
   border-radius:12px;
-  background:rgba(255,255,255,0.06);
+  background:var(--panel);
+  box-shadow:0 8px 20px rgba(27,37,48,0.08);
 }
 
 .chat-message.user{
-  border:1px solid rgba(249,115,22,0.4);
+  border:1px solid rgba(249,115,22,0.35);
 }
 
 .chat-message.assistant{
-  border:1px solid rgba(15,118,110,0.4);
+  border:1px solid rgba(15,118,110,0.35);
 }
 
 .chat-role{
   font-size:11px;
   text-transform:uppercase;
   letter-spacing:0.12em;
-  color:rgba(255,255,255,0.6);
+  color:var(--muted);
 }
 
-.chat-message p{
+.markdown-content{
+  display:grid;
+  gap:8px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.markdown-content p{
   margin:0;
-  white-space:pre-wrap;
-  font-size:13px;
-  line-height:1.5;
+}
+
+.markdown-content ul{
+  margin:0;
+  padding-left:18px;
+  display:grid;
+  gap:6px;
+}
+
+.markdown-content code{
+  background:rgba(15,118,110,0.12);
+  padding:2px 6px;
+  border-radius:6px;
+  font-family:"JetBrains Mono","Fira Code",monospace;
+  font-size:12px;
+}
+
+.markdown-content a{
+  color:var(--accent);
+  text-decoration:none;
+}
+
+.markdown-content a:hover{
+  text-decoration:underline;
 }
 
 .chat-input{
@@ -317,7 +387,7 @@ body{
   border:1px solid rgba(27,37,48,0.15);
   padding:12px;
   font-size:14px;
-  font-family:"JetBrains Mono","Fira Code",monospace;
+  font-family:"Space Grotesk","IBM Plex Sans","Segoe UI",sans-serif;
   resize:vertical;
   min-height:120px;
 }
