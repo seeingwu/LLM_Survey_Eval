@@ -135,7 +135,14 @@ export default function App() {
       setReport(r.data.report || '')
       setCombined(r.data.combined_table || [])
     } catch (err) {
-      setError('Analysis failed: ' + (err.response?.data?.error || err.message))
+      const serverError = err.response?.data?.error
+      const rawMessage = err.message || ''
+      const isTimeout = err.code === 'ECONNABORTED' || /timeout/i.test(rawMessage)
+      if (isTimeout || !err.response) {
+        setError('Server is waking up. Please click "Run analysis" again in about 30 seconds.')
+      } else {
+        setError('Analysis failed: ' + (serverError || rawMessage))
+      }
     } finally {
       setLoading(false)
     }
